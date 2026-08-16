@@ -1,0 +1,43 @@
+{
+  "name": "nx-serverless-bff",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Contract-first AWS Lambda backend-for-frontend in an Nx monorepo",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "packageManager": "pnpm@11.22.0",
+  "scripts": {
+    "build": "nx run-many -t build",
+    "check": "pnpm contract:check && pnpm format && pnpm lint && pnpm build && pnpm test:coverage",
+    "contract:check": "node tools/check-generated-contract.mjs",
+    "contract:generate": "openapi-typescript libs/api-contract/openapi/customer-offers-bff.openapi.yml -o libs/api-contract/src/generated.ts",
+    "format": "prettier --check .",
+    "format:write": "prettier --write .",
+    "graph": "nx graph",
+    "lint": "nx run-many -t lint",
+    "package": "serverless package --config apps/customer-offers-bff/serverless.yml",
+    "test": "nx run-many -t test",
+    "test:coverage": "vitest run --coverage"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@nx/js": "23.1.1",
+    "@types/aws-lambda": "8.10.162",
+    "@types/node": "24.13.3",
+    "@vitest/coverage-v8": "4.1.10",
+    "esbuild": "0.28.2",
+    "eslint": "10.8.1",
+    "globals": "17.11.0",
+    "nx": "23.1.1",
+    "openapi-typescript": "7.13.0",
+    "prettier": "3.9.6",
+    "serverless": "4.41.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.67.0",
+    "vitest": "4.1.10",
+    "yaml": "2.9.0"
+  }
+}

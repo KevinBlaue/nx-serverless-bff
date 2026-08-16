@@ -1,0 +1,149 @@
+service: nx-serverless-bff
+frameworkVersion: '4.41.0'
+
+params:
+  default:
+    upstreamBaseUrl: https://some.other-service.invalid/
+    upstreamApiKeySecretId: nx-serverless-bff/${sls:stage}/upstream-api-key
+
+provider:
+  name: aws
+  runtime: nodejs24.x
+  architecture: arm64
+  region: ${opt:region, 'eu-central-1'}
+  stage: ${opt:stage, 'dev'}
+  memorySize: 256
+  timeout: 6
+  tracing:
+    lambda: true
+  logRetentionInDays: 1
+  environment:
+    UPSTREAM_API_KEY_SECRET_ID: ${param:upstreamApiKeySecretId}
+    UPSTREAM_BASE_URL: ${param:upstreamBaseUrl}
+    UPSTREAM_TIMEOUT_MS: '2500'
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - secretsmanager:GetSecretValue
+          Resource:
+            Fn::Join:
+              - ''
+              - - 'arn:'
+                - Ref: AWS::Partition
+                - ':secretsmanager:'
+                - Ref: AWS::Region
+                - ':'
+                - Ref: AWS::AccountId
+                - ':secret:${param:upstreamApiKeySecretId}-*'
+  tags:
+    application: nx-serverless-bff
+    stage: ${sls:stage}
+  stackTags:
+    application: nx-serverless-bff
+
+build:
+  esbuild:
+    configFile: ./esbuild.config.cjs
+
+package:
+  individually: true
+  patterns:
+    - '!**/*.spec.ts'
+    - '!**/node_modules/**'
+
+functions:
+  getOffers:
+    handler: src/functions/get-offers/handler.handler
+    description: Maps fictional upstream offers to a stable frontend response
+
+resources:
+  extensions:
+    GetOffersLambdaFunction:
+      Properties:
+        LoggingConfig:
+          ApplicationLogLevel: INFO
+          LogFormat: JSON
+          SystemLogLevel: WARN
+
+  Resources:
+    HttpApi:
+      Type: AWS::ApiGatewayV2::Api
+      Properties:
+        Body: ${file(../../libs/api-contract/openapi/customer-offers-bff.openapi.yml)}
+        Description: Contract-first customer offers BFF
+        Name: ${self:service}-${sls:stage}
+        ProtocolType: HTTP
+
+    HttpApiAccessLogGroup:
+      Type: AWS::Logs::LogGroup
+      Properties:
+        LogGroupName: /aws/apigateway/${self:service}-${sls:stage}
+        RetentionInDays: 1
+
+    HttpApiDefaultStage:
+      Type: AWS::ApiGatewayV2::Stage
+      Properties:
+        AccessLogSettings:
+          DestinationArn:
+            Fn::GetAtt:
+              - HttpApiAccessLogGroup
+              - Arn
+          Format: '{"requestId":"$context.requestId","routeKey":"$context.routeKey","status":"$context.status","responseLatency":"$context.responseLatency"}'
+        ApiId:
+          Ref: HttpApi
+        AutoDeploy: true
+        StageName: $default
+
+    GetOffersInvokePermission:
+      Type: AWS::Lambda::Permission
+      Properties:
+        Action: lambda:InvokeFunction
+        FunctionName:
+          Fn::GetAtt:
+            - GetOffersLambdaFunction
+            - Arn
+        Principal: apigateway.amazonaws.com
+        SourceArn:
+          Fn::Join:
+            - ''
+            - - 'arn:'
+              - Ref: AWS::Partition
+              - ':execute-api:'
+              - Ref: AWS::Region
+              - ':'
+              - Ref: AWS::AccountId
+              - ':'
+              - Ref: HttpApi
+              - '/*/GET/offers'
+
+    GetOffersErrorsAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmDescription: Alerts when the BFF Lambda reports errors
+        ComparisonOperator: GreaterThanThreshold
+        Dimensions:
+          - Name: FunctionName
+            Value:
+              Ref: GetOffersLambdaFunction
+        EvaluationPeriods: 1
+        MetricName: Errors
+        Namespace: AWS/Lambda
+        Period: 300
+        Statistic: Sum
+        Threshold: 0
+        TreatMissingData: notBreaching
+
+  Outputs:
+    ApiUrl:
+      Description: Default API Gateway endpoint
+      Value:
+        Fn::Join:
+          - ''
+          - - 'https://'
+            - Ref: HttpApi
+            - '.execute-api.'
+            - Ref: AWS::Region
+            - '.'
+            - Ref: AWS::URLSuffix

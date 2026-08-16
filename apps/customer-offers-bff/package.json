@@ -1,0 +1,8 @@
+{
+  "name": "@nx-serverless-bff/customer-offers-bff",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@aws-sdk/client-secrets-manager": "3.1111.0"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "files": [],
+  "references": [
+    { "path": "./apps/customer-offers-bff" },
+    { "path": "./libs/api-contract" },
+    { "path": "./libs/other-service-client" }
+  ]
+}

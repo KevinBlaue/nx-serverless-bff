@@ -1,0 +1,29 @@
+{
+  "name": "customer-offers-bff",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/customer-offers-bff/src",
+  "tags": ["scope:bff", "type:application"],
+  "implicitDependencies": ["api-contract", "other-service-client"],
+  "targets": {
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/dist/apps/customer-offers-bff"],
+      "options": {
+        "command": "node apps/customer-offers-bff/tools/build.mjs"
+      }
+    },
+    "lint": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "eslint apps/customer-offers-bff"
+      }
+    },
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest run apps/customer-offers-bff"
+      }
+    }
+  }
+}

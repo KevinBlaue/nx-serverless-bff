@@ -1,0 +1,7 @@
+.nx
+.serverless
+coverage
+dist
+libs/api-contract/src/generated.ts
+node_modules
+pnpm-lock.yaml

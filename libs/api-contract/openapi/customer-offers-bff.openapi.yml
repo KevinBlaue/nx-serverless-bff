@@ -1,0 +1,150 @@
+openapi: 3.0.3
+info:
+  title: Customer Offers BFF API
+  description: A frontend-oriented API backed by a fictional third-party offer service.
+  version: 0.1.0
+paths:
+  /offers:
+    get:
+      operationId: getOffers
+      summary: Get offers for a customer reference
+      description: Resolves third-party offers and maps them to a stable frontend response.
+      security: []
+      parameters:
+        - name: customerReference
+          in: query
+          required: true
+          description: Fictional opaque reference used only for this request.
+          schema:
+            type: string
+            minLength: 1
+            maxLength: 64
+            pattern: '^[A-Za-z0-9-]+$'
+          example: demo-123
+      responses:
+        '200':
+          description: Offers were resolved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GetOffersResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+        '502':
+          $ref: '#/components/responses/InvalidUpstreamResponse'
+        '503':
+          $ref: '#/components/responses/UpstreamUnavailable'
+      x-amazon-apigateway-integration:
+        type: aws_proxy
+        httpMethod: POST
+        payloadFormatVersion: '2.0'
+        timeoutInMillis: 5000
+        uri:
+          Fn::Join:
+            - ''
+            - - 'arn:'
+              - Ref: AWS::Partition
+              - ':apigateway:'
+              - Ref: AWS::Region
+              - ':lambda:path/2015-03-31/functions/'
+              - Fn::GetAtt:
+                  - GetOffersLambdaFunction
+                  - Arn
+              - /invocations
+components:
+  responses:
+    BadRequest:
+      description: The frontend request is missing required or valid input.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    InternalServerError:
+      description: The BFF is not configured correctly or failed unexpectedly.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    InvalidUpstreamResponse:
+      description: The upstream returned a response that violates its expected contract.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+    UpstreamUnavailable:
+      description: The upstream timed out, rate-limited the request, or was unavailable.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorResponse'
+  schemas:
+    ApiErrorResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - errorCode
+        - requestId
+      properties:
+        errorCode:
+          type: string
+          enum:
+            - INVALID_REQUEST
+            - INTERNAL_ERROR
+            - INVALID_UPSTREAM_RESPONSE
+            - UPSTREAM_UNAVAILABLE
+        requestId:
+          type: string
+          minLength: 1
+    GetOffersResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - offers
+        - source
+      properties:
+        offers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Offer'
+        source:
+          type: string
+          enum:
+            - other-service
+    Offer:
+      type: object
+      additionalProperties: false
+      required:
+        - id
+        - title
+        - monthlyPrice
+        - highlights
+      properties:
+        id:
+          type: string
+          minLength: 1
+        title:
+          type: string
+          minLength: 1
+        monthlyPrice:
+          $ref: '#/components/schemas/Money'
+        highlights:
+          type: array
+          items:
+            type: string
+    Money:
+      type: object
+      additionalProperties: false
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: string
+          pattern: '^\\d+\\.\\d{2}$'
+          example: '19.99'
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          example: EUR
