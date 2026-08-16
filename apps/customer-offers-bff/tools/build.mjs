@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 import { build } from 'esbuild';
 
 const root = resolve(import.meta.dirname, '../../..');
-const output = resolve(root, 'dist/apps/customer-offers-bff');
+const output = resolve(root, 'apps/customer-offers-bff/dist');
 const pnpm = process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 
 function run(args) {
@@ -33,5 +33,5 @@ await build({
   platform: 'node',
   sourcemap: false,
   target: 'node24',
-  tsconfig: resolve(root, 'tsconfig.base.json'),
+  tsconfig: resolve(root, 'tsconfig.json'),
 });

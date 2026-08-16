@@ -1,0 +1,11 @@
+{
+  "name": "@nx-serverless-bff/other-service-client",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.lib.json",
+    "lint": "eslint src --ext .ts",
+    "test": "jest --config ../../jest.config.cjs --runInBand --testPathPatterns=libs/other-service-client",
+    "test:update": "jest --config ../../jest.config.cjs --runInBand --updateSnapshot --testPathPatterns=libs/other-service-client"
+  }
+}

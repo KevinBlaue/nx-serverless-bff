@@ -1,8 +1,6 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../../dist/apps/customer-offers-bff",
-    "rootDir": "../..",
     "types": ["node", "aws-lambda"]
   },
   "include": ["src/**/*.ts"],

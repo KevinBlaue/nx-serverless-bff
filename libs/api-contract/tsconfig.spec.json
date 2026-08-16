@@ -1,8 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
-    "types": ["node", "vitest/globals"]
+    "types": ["node", "jest"]
   },
   "include": ["src/**/*.ts"]
 }

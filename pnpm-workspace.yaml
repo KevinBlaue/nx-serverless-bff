@@ -6,3 +6,4 @@ allowBuilds:
   esbuild: true
   nx: true
   serverless: true
+  unrs-resolver: true
