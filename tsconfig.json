@@ -1,9 +1,21 @@
 {
-  "extends": "./tsconfig.base.json",
-  "files": [],
-  "references": [
-    { "path": "./apps/customer-offers-bff" },
-    { "path": "./libs/api-contract" },
-    { "path": "./libs/other-service-client" }
-  ]
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    "lib": ["ES2022"],
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "types": ["node", "jest"],
+    "baseUrl": ".",
+    "paths": {
+      "@nx-serverless-bff/api-contract": ["libs/api-contract/src/index.ts"],
+      "@nx-serverless-bff/other-service-client": ["libs/other-service-client/src/index.ts"]
+    }
+  },
+  "include": ["apps/**/*.ts", "libs/**/*.ts"],
+  "exclude": ["coverage", "dist", "node_modules"]
 }

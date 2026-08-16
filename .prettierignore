@@ -1,5 +1,6 @@
 .nx
 .serverless
+.turbo
 coverage
 dist
 libs/api-contract/src/generated.ts

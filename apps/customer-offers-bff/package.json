@@ -2,7 +2,15 @@
   "name": "@nx-serverless-bff/customer-offers-bff",
   "version": "0.1.0",
   "private": true,
+  "scripts": {
+    "build": "node tools/build.mjs",
+    "lint": "eslint src --ext .ts",
+    "test": "jest --config ../../jest.config.cjs --runInBand --testPathPatterns=apps/customer-offers-bff",
+    "test:update": "jest --config ../../jest.config.cjs --runInBand --updateSnapshot --testPathPatterns=apps/customer-offers-bff"
+  },
   "dependencies": {
-    "@aws-sdk/client-secrets-manager": "3.1111.0"
+    "@aws-sdk/client-secrets-manager": "3.1111.0",
+    "@nx-serverless-bff/api-contract": "workspace:*",
+    "@nx-serverless-bff/other-service-client": "workspace:*"
   }
 }

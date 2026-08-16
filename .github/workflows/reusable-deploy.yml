@@ -1,0 +1,48 @@
+name: Reusable deployment
+
+on:
+  workflow_call:
+    inputs:
+      aws_region:
+        description: AWS region used for the deployment
+        required: true
+        type: string
+      deploy_role_arn:
+        description: GitHub OIDC role assumed for the deployment
+        required: true
+        type: string
+    secrets:
+      SERVERLESS_ACCESS_KEY:
+        description: Serverless Framework access key
+        required: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up pnpm and Node.js
+        uses: pnpm/setup@v2.0.2
+        with:
+          cache: true
+          runtime: node@24
+
+      - name: Run quality gate
+        run: pnpm check
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v6.2.3
+        with:
+          aws-region: ${{ inputs.aws_region }}
+          role-to-assume: ${{ inputs.deploy_role_arn }}
+
+      - name: Deploy
+        env:
+          SERVERLESS_ACCESS_KEY: ${{ secrets.SERVERLESS_ACCESS_KEY }}
+        run: pnpm exec serverless deploy --config apps/customer-offers-bff/serverless.yml --stage dev

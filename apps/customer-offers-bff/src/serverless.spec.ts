@@ -12,7 +12,7 @@ interface ServerlessConfiguration {
 
 describe('Serverless infrastructure', () => {
   const configuration = parse(
-    readFileSync(resolve(import.meta.dirname, '../serverless.yml'), 'utf8'),
+    readFileSync(resolve(__dirname, '../serverless.yml'), 'utf8'),
   ) as ServerlessConfiguration;
 
   it('keeps the BFF service and handler app-local', () => {

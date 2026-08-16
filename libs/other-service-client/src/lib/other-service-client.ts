@@ -1,5 +1,9 @@
 import { InvalidOtherServiceResponseError, OtherServiceUnavailableError } from './errors';
-import type { OtherServiceClient, OtherServiceClientOptions } from './types';
+import type {
+  ExternalOffersResponse,
+  OtherServiceClient,
+  OtherServiceClientOptions,
+} from './types';
 import { validateExternalOffersResponse } from './validate-response';
 
 const DEFAULT_TIMEOUT_MS = 2_500;
@@ -13,7 +17,7 @@ export function createOtherServiceClient(options: OtherServiceClientOptions): Ot
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
   return {
-    async getOffers(customerReference) {
+    async getOffers(customerReference): Promise<ExternalOffersResponse> {
       const url = new URL('/v1/offers', options.baseUrl);
       url.searchParams.set('customerReference', customerReference);
 

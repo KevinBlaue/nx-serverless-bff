@@ -11,7 +11,7 @@ describe('getUpstreamApiKey', () => {
   });
 
   it('uses the direct key for local development without calling Secrets Manager', async () => {
-    const secretReader: SecretReader = { send: vi.fn() };
+    const secretReader: SecretReader = { send: jest.fn() };
 
     await expect(getUpstreamApiKey({ UPSTREAM_API_KEY: 'local-key' }, secretReader)).resolves.toBe(
       'local-key',
@@ -21,21 +21,21 @@ describe('getUpstreamApiKey', () => {
 
   it('loads and caches the API key from Secrets Manager', async () => {
     const secretReader: SecretReader = {
-      send: vi.fn().mockResolvedValue({ SecretString: 'secret-key' }),
+      send: jest.fn().mockResolvedValue({ SecretString: 'secret-key' }),
     };
     const environment = { UPSTREAM_API_KEY_SECRET_ID: 'example/secret' };
 
     await expect(getUpstreamApiKey(environment, secretReader)).resolves.toBe('secret-key');
     await expect(getUpstreamApiKey(environment, secretReader)).resolves.toBe('secret-key');
-    expect(secretReader.send).toHaveBeenCalledOnce();
+    expect(secretReader.send).toHaveBeenCalledTimes(1);
   });
 
   it('rejects missing secret configuration', async () => {
-    await expect(getUpstreamApiKey({}, { send: vi.fn() })).rejects.toThrow(ConfigurationError);
+    await expect(getUpstreamApiKey({}, { send: jest.fn() })).rejects.toThrow(ConfigurationError);
   });
 
   it('rejects a binary or empty secret value', async () => {
-    const secretReader: SecretReader = { send: vi.fn().mockResolvedValue({}) };
+    const secretReader: SecretReader = { send: jest.fn().mockResolvedValue({}) };
 
     await expect(
       getUpstreamApiKey({ UPSTREAM_API_KEY_SECRET_ID: 'example/secret' }, secretReader),
@@ -44,7 +44,7 @@ describe('getUpstreamApiKey', () => {
 
   it('wraps provider failures and allows a later retry', async () => {
     const secretReader: SecretReader = {
-      send: vi
+      send: jest
         .fn()
         .mockRejectedValueOnce(new Error('provider details'))
         .mockResolvedValueOnce({ SecretString: 'recovered-key' }),

@@ -8,21 +8,21 @@
   "targets": {
     "build": {
       "executor": "nx:run-commands",
-      "outputs": ["{workspaceRoot}/dist/apps/customer-offers-bff"],
+      "outputs": ["{projectRoot}/dist"],
       "options": {
-        "command": "node apps/customer-offers-bff/tools/build.mjs"
+        "command": "pnpm --filter @nx-serverless-bff/customer-offers-bff build"
       }
     },
     "lint": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "eslint apps/customer-offers-bff"
+        "command": "pnpm --filter @nx-serverless-bff/customer-offers-bff lint"
       }
     },
     "test": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "vitest run apps/customer-offers-bff"
+        "command": "pnpm --filter @nx-serverless-bff/customer-offers-bff test"
       }
     }
   }

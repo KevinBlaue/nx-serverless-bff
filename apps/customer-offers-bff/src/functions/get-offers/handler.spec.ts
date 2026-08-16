@@ -24,7 +24,7 @@ function createEvent(customerReference?: string): APIGatewayProxyEventV2 {
         path: '/offers',
         protocol: 'HTTP/1.1',
         sourceIp: '127.0.0.1',
-        userAgent: 'vitest',
+        userAgent: 'jest',
       },
       requestId: 'request-123',
       routeKey: 'GET /offers',
@@ -37,19 +37,28 @@ function createEvent(customerReference?: string): APIGatewayProxyEventV2 {
   };
 }
 
-function responseBody(result: { body?: string }): unknown {
-  return JSON.parse(result.body ?? 'null') as unknown;
+function responseBody(result: unknown): unknown {
+  if (typeof result !== 'object' || result === null || !('body' in result)) {
+    throw new Error('Expected a structured API Gateway response');
+  }
+
+  if (typeof result.body !== 'string') {
+    throw new Error('Expected the API Gateway response to contain a body');
+  }
+
+  return JSON.parse(result.body) as unknown;
 }
 
 describe('createGetOffersHandler', () => {
   beforeEach(() => {
-    vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    vi.spyOn(console, 'info').mockImplementation(() => undefined);
-    vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    jest.spyOn(console, 'warn').mockImplementation(() => undefined);
   });
 
   it('returns a frontend-oriented response', async () => {
-    const getOffers = vi.fn<OtherServiceClient['getOffers']>().mockResolvedValue({
+    const getOffers: jest.MockedFunction<OtherServiceClient['getOffers']> = jest.fn();
+    getOffers.mockResolvedValue({
       results: [
         {
           currency_code: 'EUR',
@@ -88,7 +97,7 @@ describe('createGetOffersHandler', () => {
   it.each([undefined, '', 'contains spaces', 'a'.repeat(65)])(
     'rejects invalid customer reference %j before loading credentials',
     async (customerReference) => {
-      const getApiKey = vi.fn<() => Promise<string>>();
+      const getApiKey = jest.fn<Promise<string>, []>();
       const handler = createGetOffersHandler({ getApiKey });
 
       const result = await handler(createEvent(customerReference), {} as never, () => undefined);
@@ -109,7 +118,7 @@ describe('createGetOffersHandler', () => {
     [new Error('unexpected'), 500, 'INTERNAL_ERROR'],
   ] as const)('maps %s to a safe API error', async (error, expectedStatus, expectedCode) => {
     const handler = createGetOffersHandler({
-      createClient: () => ({ getOffers: vi.fn().mockRejectedValue(error) }),
+      createClient: () => ({ getOffers: jest.fn().mockRejectedValue(error) }),
       getApiKey: () => Promise.resolve('server-side-key'),
     });
 
@@ -121,9 +130,9 @@ describe('createGetOffersHandler', () => {
       requestId: 'request-123',
     });
     const logCalls: unknown[][] = [
-      ...vi.mocked(console.error).mock.calls,
-      ...vi.mocked(console.info).mock.calls,
-      ...vi.mocked(console.warn).mock.calls,
+      ...jest.mocked(console.error).mock.calls,
+      ...jest.mocked(console.info).mock.calls,
+      ...jest.mocked(console.warn).mock.calls,
     ];
     const allLogs = logCalls.map(([entry]) => (typeof entry === 'string' ? entry : '')).join(' ');
     expect(allLogs).not.toContain('server-side-key');

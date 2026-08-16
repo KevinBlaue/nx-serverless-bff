@@ -1,12 +1,10 @@
 {
-  "extends": "../../tsconfig.base.json",
+  "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "composite": true,
     "declaration": true,
     "emitDeclarationOnly": true,
-    "outDir": "../../dist/libs/other-service-client",
-    "rootDir": "src",
-    "tsBuildInfoFile": "../../dist/libs/other-service-client/tsconfig.lib.tsbuildinfo"
+    "noEmit": false,
+    "outDir": "dist"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["src/**/*.spec.ts"]
